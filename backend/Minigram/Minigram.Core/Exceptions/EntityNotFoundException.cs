@@ -7,6 +7,9 @@ namespace Minigram.Core.Exceptions
 
         public EntityNotFoundException(string message)
             : base(message) {}
+        
+        public EntityNotFoundException(Type entityType)
+            : base($"{entityType.Name} was not found.") {}
 
         public EntityNotFoundException(string entityName, object entityId)
             : base($"{entityName} with Id '{entityId}' was not found.") {}

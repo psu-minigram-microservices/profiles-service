@@ -1,5 +1,6 @@
 namespace Minigram.Auth.Services
 {
+    using Microsoft.AspNetCore.JsonPatch;
     using Microsoft.EntityFrameworkCore;
     using Minigram.Auth.Dto;
     using Minigram.Auth.Dto.User;
@@ -8,18 +9,18 @@ namespace Minigram.Auth.Services
     using Minigram.Core.Models;
     using Minigram.Core.Repositories;
 
-    public class UserService
+    public class ProfileService
     {
         private readonly IRepository<User> _userRepository;
 
         private IQueryable<User> Users => _userRepository.Get();
 
-        public UserService(IRepository<User> userRepository)
+        public ProfileService(IRepository<User> userRepository)
         {
             _userRepository = userRepository;
         }
 
-        public async Task<List<ReadUserDto>> GetAll(QueryParams queryParams)
+        public async Task<List<ReadProfileDto>> GetAll(QueryParams queryParams)
         {
             ArgumentNullException.ThrowIfNull(queryParams);
 
@@ -34,12 +35,11 @@ namespace Minigram.Auth.Services
             }
 
             return await users
-                .Include(u => u.Profiles)
-                .Select(u => u.ToDto())
+                .Select(u => u.ToProfileDto())
                 .ToListAsync();
         }
 
-        public async Task<ReadUserDto> Get(Guid id)
+        public async Task<ReadProfileDto> Get(Guid id)
         {
             if (id == Guid.Empty)
             {
@@ -47,7 +47,6 @@ namespace Minigram.Auth.Services
             }
 
             User? user = await Users
-                .Include(u => u.Profiles)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
@@ -55,7 +54,7 @@ namespace Minigram.Auth.Services
                 throw new EntityNotFoundException(typeof(User), id);
             }
 
-            return user.ToDto();
+            return user.ToProfileDto();
         }
 
         public async Task<int> Count()
@@ -63,27 +62,60 @@ namespace Minigram.Auth.Services
             return await _userRepository.Count();
         }
 
-        public async Task Create()
+        public async Task<User> Update(Guid id, UpdateProfileDto dto)
         {
-            
-        }
+            ArgumentNullException.ThrowIfNull(dto);
 
-        public async Task Delete(Guid id)
-        {
             if (id == Guid.Empty)
             {
                 throw new ArgumentException(nameof(id));
             }
 
-            User? user = await Users.FirstOrDefaultAsync(u => u.Id == id);
+            User? user = await Users
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
             {
                 throw new EntityNotFoundException(typeof(User), id);
             }
 
-            _userRepository.Delete(user);
+            user.Profile.Name = dto.Name;
+            user.Profile.PhotoUrl = dto.PhotoUrl;
+
             await _userRepository.SaveAsync();
+            return user;
+        }
+
+        public async Task<User> Patch(Guid id, JsonPatchDocument<UpdateProfileDto> patch)
+        {
+            ArgumentNullException.ThrowIfNull(patch);
+
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            User? user = await Users
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null)
+            {
+                throw new EntityNotFoundException(typeof(User), id);
+            }
+
+            UpdateProfileDto dto = new ()
+            {
+                Name = user.Profile.Name,
+                PhotoUrl = user.Profile.PhotoUrl,
+            };
+
+            patch.ApplyTo(dto);
+
+            user.Profile.Name = dto.Name;
+            user.Profile.PhotoUrl = dto.PhotoUrl;
+
+            await _userRepository.SaveAsync();
+            return user;
         }
     }
 }
