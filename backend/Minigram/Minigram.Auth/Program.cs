@@ -8,6 +8,7 @@ namespace Minigram.Auth
     using Minigram.Core.Context;
     using Minigram.Core.Extensions;
     using Minigram.Core.Conventions;
+    using Minigram.Core.Middleware;
     using Minigram.Core.Repositories;
     using Minigram.Auth.Models;
     using Minigram.Auth.Options;
@@ -73,7 +74,8 @@ namespace Minigram.Auth
                     options.RoutePrefix = string.Empty;
                 });
             }
-
+            
+            app.UseExceptionHandling();
             app.UseAuthorization();
 
             app.MapControllers();

@@ -11,6 +11,7 @@ namespace Minigram.Profile
     using Minigram.Core.Context;
     using Minigram.Core.Extensions;
     using Minigram.Core.Conventions;
+    using Minigram.Core.Middleware;
     using Minigram.Core.Repositories;
     using Minigram.Profile.Models;
     using Minigram.Profile.Options;
@@ -105,6 +106,7 @@ namespace Minigram.Profile
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseExceptionHandling();
 
             app.MapControllers().RequireAuthorization();
             app.Run();
