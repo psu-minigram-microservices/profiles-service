@@ -1,11 +1,11 @@
 namespace Minigram.Auth
 {
+    using System.Text.Json.Serialization;
     using Microsoft.EntityFrameworkCore;
     using Minigram.Auth.Models;
     using Minigram.Core.Context;
     using Minigram.Core.Middleware;
     using Minigram.Core.Repositories;
-    using System.Text.Json.Serialization;
 
     public class Program
     {

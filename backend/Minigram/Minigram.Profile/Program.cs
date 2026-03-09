@@ -1,13 +1,12 @@
 namespace Minigram.Profile
 {
+    using System.Text.Json.Serialization;
     using Microsoft.EntityFrameworkCore;
     using Minigram.Core.Context;
     using Minigram.Core.Middleware;
     using Minigram.Core.Repositories;
     using Minigram.Profile.Models;
     using Minigram.Profile.Services;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
 
     public class Program
     {
