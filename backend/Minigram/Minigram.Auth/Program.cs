@@ -1,10 +1,11 @@
 namespace Minigram.Auth
 {
     using Microsoft.EntityFrameworkCore;
-    using System.Text.Json.Serialization;
-    using Minigram.Core.Context;
-    using Minigram.Core.Repositories;
     using Minigram.Auth.Models;
+    using Minigram.Core.Context;
+    using Minigram.Core.Middleware;
+    using Minigram.Core.Repositories;
+    using System.Text.Json.Serialization;
 
     public class Program
     {
@@ -40,6 +41,9 @@ namespace Minigram.Auth
                     options.RoutePrefix = string.Empty;
                 });
             }
+
+            app.UseExceptionHandling();
+            app.UseRequestLogging();
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
