@@ -1,14 +1,15 @@
 namespace Minigram.Auth
 {
-    using Microsoft.EntityFrameworkCore;
     using System.Text.Json.Serialization;
+    using Microsoft.EntityFrameworkCore;
+    using Minigram.Auth.Models;
     using Minigram.Core.Context;
     using Minigram.Core.Repositories;
-    using Minigram.Auth.Models;
+    using Npgsql;
 
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +34,39 @@ namespace Minigram.Auth
 
             using (var scope = app.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<BaseDbContext>();
-                dbContext.Database.Migrate();
+                var context = scope.ServiceProvider.GetRequiredService<BaseDbContext>();
+
+                try
+                {
+                    if (!await context.Database.CanConnectAsync())
+                    {
+
+                        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+                        var masterConnectionString = connectionString.Replace("Database=minigram-db", "Database=postgres");
+
+                        using var masterConnection = new NpgsqlConnection(masterConnectionString);
+                        await masterConnection.OpenAsync();
+
+                        using var cmd = new NpgsqlCommand($"CREATE DATABASE \"minigram-db\"", masterConnection);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при создании БД: {ex.Message}");
+                    throw;
+                }
+
+                try
+                {
+                    await context.Database.MigrateAsync();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+                    throw;
+                }
             }
 
             if (app.Environment.IsDevelopment())
