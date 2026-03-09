@@ -19,7 +19,7 @@ namespace Minigram.Profile.Services
             _relationRepository = relationRepository;
         }
 
-        public async Task<List<RelationResponseDto>> GetAllByStatus(
+        public async Task<List<ProfileResponseDto>> GetAllByStatus(
             Guid senderId,
             tRelationshipStatus status,
             QueryParams queryParams)
@@ -43,7 +43,7 @@ namespace Minigram.Profile.Services
 
             return await relations
                 .Where(r => r.Status == status && r.SenderId == senderId)
-                .Select(u => u.ToDto())
+                .Select(u => u.Receiver.ToDto())
                 .ToListAsync();
         }
 
@@ -59,20 +59,20 @@ namespace Minigram.Profile.Services
                 .CountAsync();
         }
 
-        public async Task<RelationResponseDto> Get(Guid senderId, Guid recieverId)
+        public async Task<RelationResponseDto> Get(Guid senderId, Guid receiverId)
         {
             if (senderId == Guid.Empty)
             {
                 throw new ArgumentException($"{nameof(senderId)} cannot be {senderId}", nameof(senderId));
             }
 
-            if (recieverId == Guid.Empty)
+            if (receiverId == Guid.Empty)
             {
-                throw new ArgumentException($"{nameof(recieverId)} cannot be {recieverId}", nameof(recieverId));
+                throw new ArgumentException($"{nameof(receiverId)} cannot be {receiverId}", nameof(receiverId));
             }
 
             RelationResponseDto? relation = await Relations
-                .Where(r => r.SenderId == senderId && r.ReceiverId == recieverId)
+                .Where(r => r.SenderId == senderId && r.ReceiverId == receiverId)
                 .Select(r => r.ToDto())
                 .FirstOrDefaultAsync();
 
@@ -84,20 +84,20 @@ namespace Minigram.Profile.Services
             return relation;
         }
 
-        public async Task<Relation> CreateOrUpdate(Guid senderId, Guid recieverId, tRelationshipStatus status)
+        public async Task<Relation> CreateOrUpdate(Guid senderId, Guid receiverId, tRelationshipStatus status)
         {
             if (senderId == Guid.Empty)
             {
                 throw new ArgumentException($"{nameof(senderId)} cannot be {senderId}", nameof(senderId));
             }
 
-            if (recieverId == Guid.Empty)
+            if (receiverId == Guid.Empty)
             {
-                throw new ArgumentException($"{nameof(recieverId)} cannot be {recieverId}", nameof(recieverId));
+                throw new ArgumentException($"{nameof(receiverId)} cannot be {receiverId}", nameof(receiverId));
             }
 
             Relation? relation = await Relations.FirstOrDefaultAsync(
-                r => r.SenderId == senderId && r.ReceiverId == recieverId);
+                r => r.SenderId == senderId && r.ReceiverId == receiverId);
 
             if (relation == null)
             {
@@ -105,7 +105,7 @@ namespace Minigram.Profile.Services
                 {
                     Id = Guid.NewGuid(),
                     SenderId = senderId,
-                    ReceiverId = recieverId
+                    ReceiverId = receiverId
                 };
 
                 await _relationRepository.Create(relation);
@@ -117,20 +117,20 @@ namespace Minigram.Profile.Services
             return relation;
         }
 
-        public async Task Delete(Guid senderId, Guid recieverId)
+        public async Task Delete(Guid senderId, Guid receiverId)
         {
             if (senderId == Guid.Empty)
             {
                 throw new ArgumentException($"{nameof(senderId)} cannot be {senderId}", nameof(senderId));
             }
 
-            if (recieverId == Guid.Empty)
+            if (receiverId == Guid.Empty)
             {
-                throw new ArgumentException($"{nameof(recieverId)} cannot be {recieverId}", nameof(recieverId));
+                throw new ArgumentException($"{nameof(receiverId)} cannot be {receiverId}", nameof(receiverId));
             }
 
             Relation? relation = await Relations.FirstOrDefaultAsync(
-                r => r.SenderId == senderId && r.ReceiverId == recieverId);
+                r => r.SenderId == senderId && r.ReceiverId == receiverId);
 
             if (relation == null)
             {

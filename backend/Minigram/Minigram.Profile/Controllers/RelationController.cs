@@ -1,7 +1,6 @@
     namespace Minigram.Profile.Controllers
     {
         using Microsoft.AspNetCore.Mvc;
-        using Microsoft.AspNetCore.JsonPatch;
         using Minigram.Profile.Dto;
         using Minigram.Profile.Extensions;
         using Minigram.Profile.Services;
@@ -21,47 +20,46 @@
 
             public RelationController(
                 CurrentUserService currentUserService,
-                RelationService relationService,
-                ProfileService profileService)
+                RelationService relationService)
             {
                 _currentUserService = currentUserService;
                 _relationService = relationService;
             }
 
             [HttpGet]
-            public async Task<PagedResponse<RelationResponseDto>> GetRelationsByStatus(
+            public async Task<PagedResponse<ProfileResponseDto>> GetByStatus(
                 [FromQuery] tRelationshipStatus status,
                 [FromQuery] QueryParams queryParams)
             {
                 int count = await _relationService.CountByStatus(UserId, status);
-                List<RelationResponseDto> data = await _relationService.GetAllByStatus(UserId, status, queryParams);
+                List<ProfileResponseDto> data = await _relationService.GetAllByStatus(UserId, status, queryParams);
 
-                return new PagedResponse<RelationResponseDto>
+                return new PagedResponse<ProfileResponseDto>
                 {
                     Count = count,
                     Data = data,
                 };
             }
 
-            [HttpGet($"{{{nameof(recieverId)}}}")]
-            public async Task<RelationResponseDto> GetRelation([FromRoute] Guid recieverId)
+            [HttpGet($"{{{nameof(receiverId)}}}")]
+            public async Task<RelationResponseDto> Get([FromRoute] Guid receiverId)
             {
-                return await _relationService.Get(UserId, recieverId);
+                return await _relationService.Get(UserId, receiverId);
             }
 
-            [HttpPost($"{{{nameof(recieverId)}}}")]
-            public async Task<ActionResult> CreateOrUpdateRelation(
-                [FromRoute] Guid recieverId,
+            [HttpPost($"{{{nameof(receiverId)}}}")]
+            public async Task<ActionResult> CreateOrUpdate(
+                [FromRoute] Guid receiverId,
                 [FromQuery] tRelationshipStatus status)
             {
-                Relation relation = await _relationService.CreateOrUpdate(UserId, recieverId, status);
-                return CreatedAtAction(nameof(GetRelation), relation.ToDto());
+                Relation relation = await _relationService.CreateOrUpdate(UserId, receiverId, status);
+                return CreatedAtAction(nameof(Get), relation.ToDto());
             }
 
-            [HttpDelete($"{{{nameof(recieverId)}}}")]
-            public async Task DeleteRelation([FromRoute] Guid recieverId)
+            [HttpDelete($"{{{nameof(receiverId)}}}")]
+            public async Task DeleteRelation([FromRoute] Guid receiverId)
             {
-                await _relationService.Delete(UserId, recieverId);
+                await _relationService.Delete(UserId, receiverId);
             }
         }
     }
