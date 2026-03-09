@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine  
+    container_name: minigram-postgres
+    environment:
+      POSTGRES_DB: minigram-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - minigram-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  
+  liquibase:
+    build: ./../liquibase
+    container_name: minigram-liquibase
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=minigram-db
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-123456}
+      - LIQUIBASE_CHANGELOG=changelog/db.changelog-master.xml
+    volumes:
+      - ../liquibase/changelog:/liquibase/changelog
+      - ../liquibase/sql:/liquibase/sql
+    networks:
+      - minigram-network
+    command: >
+      --url=jdbc:postgresql://postgres:5432/minigram-db
+      --username=postgres
+      --password=123456
+      --changeLogFile=changelog/db.changelog-master.xml
+      --logLevel=info
+      update
+    restart: "no"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  minigram-network:
+    driver: bridge

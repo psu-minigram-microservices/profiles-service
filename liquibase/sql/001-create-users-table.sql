@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS "Users" (
+    "Id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "Email" TEXT UNIQUE NOT NULL,
+    "Password" TEXT NOT NULL,
+    "IsEmailVerified" BOOLEAN DEFAULT FALSE,
+    "CreatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    "UpdatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

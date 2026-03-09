@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine  
+    container_name: minigram-postgres
+    environment:
+      POSTGRES_DB: minigram-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - minigram-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  minigram-network:
+    driver: bridge
