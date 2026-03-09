@@ -53,7 +53,7 @@ namespace Minigram.Auth
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при создании БД: {ex.Message}");
+                    Console.WriteLine($"Error Create Database: {ex.Message}");
                     throw;
                 }
 
@@ -64,7 +64,7 @@ namespace Minigram.Auth
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+                    Console.WriteLine($"Migration Error: {ex.Message}");
                     throw;
                 }
             }
