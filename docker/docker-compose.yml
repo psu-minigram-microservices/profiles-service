@@ -1,6 +1,45 @@
 version: '3.8'
 
+name: minigram
+
 services:
+  auth-service:
+    build:
+      context: ../backend/Minigram
+      dockerfile: ./Minigram.Auth/Dockerfile
+    container_name: minigram-auth-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres-auth;Database=${AUTH_DB_NAME};Username=${AUTH_DB_USER};Password=${AUTH_DB_PASSWORD}
+      - JWT__Secret=${JWT_SECRET}
+      - JWT__Issuer=${JWT_ISSUER}
+      - JWT__Audience=${JWT_AUDIENCE}
+      - JWT__ExpirationMinutes=${JWT_EXPIRATION}
+    ports:
+      - "${AUTH_SERVICE_PORT}:5000"
+    networks:
+      - minigram
+    restart: unless-stopped
+
+  profile-service:
+    build:
+      context: ../backend/Minigram
+      dockerfile: ./Minigram.Profile/Dockerfile
+    container_name: minigram-profile-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres-profile;Database=${PROFILE_DB_NAME};Username=${PROFILE_DB_USER};Password=${PROFILE_DB_PASSWORD}
+      - JWT__Secret=${JWT_SECRET}
+      - JWT__Issuer=${JWT_ISSUER}
+      - JWT__Audience=${JWT_AUDIENCE}
+    ports:
+      - "${PROFILE_SERVICE_PORT}:5000"
+    networks:
+      - minigram
+    restart: unless-stopped
+
   postgres-auth:
     image: postgres:18.3
     container_name: minigram-postgres-auth
@@ -52,9 +91,6 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${AUTH_DB_USER}
       LIQUIBASE_COMMAND_PASSWORD: ${AUTH_DB_PASSWORD}
       LIQUIBASE_COMMAND_CHANGELOG_FILE: /changelog-auth/changelog-auth.xml
-      LIQUIBASE_SEARCH_PATH: /liquibase
-      LIQUIBASE_HEADLESS: true
-      LIQUIBASE_CLASSPATH: /liquibase/lib
     volumes:
       - ../backend/sql/changelog-auth.xml:/liquibase/changelog-auth/changelog-auth.xml
       - ../backend/sql/migrate/auth:/liquibase/changelog-auth/migrate/auth
@@ -77,9 +113,6 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${PROFILE_DB_USER}
       LIQUIBASE_COMMAND_PASSWORD: ${PROFILE_DB_PASSWORD}
       LIQUIBASE_COMMAND_CHANGELOG_FILE: /changelog-profile/changelog-profile.xml
-      LIQUIBASE_SEARCH_PATH: /liquibase
-      LIQUIBASE_HEADLESS: true
-      LIQUIBASE_CLASSPATH: /liquibase/lib
     volumes:
       - ../backend/sql/changelog-profile.xml:/liquibase/changelog-profile/changelog-profile.xml
       - ../backend/sql/migrate/profile:/liquibase/changelog-profile/migrate/profile
