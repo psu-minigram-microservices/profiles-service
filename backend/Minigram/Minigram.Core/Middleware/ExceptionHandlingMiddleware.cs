@@ -2,10 +2,12 @@
 {
     using System.Net;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Minigram.Core.Dto;
     using Minigram.Core.Exceptions;
 
     public class ExceptionHandlingMiddleware
@@ -14,7 +16,13 @@
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, IWebHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger)
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        public ExceptionHandlingMiddleware(RequestDelegate next,IWebHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger)
         {
             _next = next;
             _env = env;
@@ -44,7 +52,7 @@
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
+                _logger.LogError(ex, "Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
                 await WriteErrorResponse(context, HttpStatusCode.InternalServerError, ex);
             }
         }
@@ -54,32 +62,42 @@
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/json";
 
-            object response;
+            var dto = _env.IsDevelopment() ?
+                BuildDevelopmentResponse(statusCode, exception) :
+                BuildProductionResponse(statusCode, exception);
 
-            if (_env.IsDevelopment())
-            {
-                response = new
-                {
-                    statusCode = (int)statusCode,
-                    message = exception.Message,
-                    exceptionType = exception.GetType().Name,
-                    stackTrace = exception.StackTrace,
-                };
-            }
-            else
-            {
-                var errorMessage = (int)statusCode < 500 ? exception.Message 
-                    : "An unexpected error occurred. Please try again later.";
-
-                response = new
-                {
-                    statusCode = (int)statusCode,
-                    message = errorMessage,
-                };
-            }
-
-            var json = JsonSerializer.Serialize(response);
+            var json = JsonSerializer.Serialize(dto, JsonOptions);
             await context.Response.WriteAsync(json);
+        }
+
+        private static ErrorResponse BuildDevelopmentResponse(HttpStatusCode statusCode, Exception exception)
+        {
+            return new ErrorResponse
+            {
+                StatusCode = (int)statusCode,
+                Message = exception.Message,
+                ExceptionType = exception.GetType().Name,
+                StackTrace = exception.StackTrace,
+            };
+        }
+
+
+        private static ErrorResponse BuildProductionResponse(HttpStatusCode statusCode, Exception exception)
+        {
+            var message = statusCode switch
+            {
+                HttpStatusCode.NotFound => "The requested resource was not found.",
+                HttpStatusCode.Unauthorized => "Authentication is required to access this resource.",
+                HttpStatusCode.BadRequest => "The request contains invalid data.",
+                HttpStatusCode.Forbidden => "Do not have permission to access this resource.",
+                _ => "An unexpected error occurred. Please try again later."
+            };
+
+            return new ErrorResponse
+            {
+                StatusCode = (int)statusCode,
+                Message = message,
+            };
         }
     }
 }
