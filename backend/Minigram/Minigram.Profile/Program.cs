@@ -52,7 +52,6 @@ namespace Minigram.Profile
             }
 
             app.UseExceptionHandling();
-            app.UseRequestLogging();
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

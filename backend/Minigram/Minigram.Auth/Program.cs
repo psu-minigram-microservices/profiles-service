@@ -43,7 +43,6 @@ namespace Minigram.Auth
             }
 
             app.UseExceptionHandling();
-            app.UseRequestLogging();
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

@@ -37,17 +37,14 @@
             }
             catch (EntityNotFoundException ex)
             {
-                _logger.LogWarning("Entity not found: {Message}", ex.Message);
                 await WriteErrorResponse(context, HttpStatusCode.NotFound, ex);
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning("Unauthorized access attempt on {Path}", context.Request.Path);
                 await WriteErrorResponse(context, HttpStatusCode.Unauthorized, ex);
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("Invalid argument: {Message}", ex.Message);
                 await WriteErrorResponse(context, HttpStatusCode.BadRequest, ex);
             }
             catch (Exception ex)
@@ -80,7 +77,6 @@
                 StackTrace = exception.StackTrace,
             };
         }
-
 
         private static ErrorResponse BuildProductionResponse(HttpStatusCode statusCode, Exception exception)
         {
