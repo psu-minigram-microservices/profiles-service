@@ -1,10 +1,13 @@
 namespace Minigram.Auth
 {
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using System.Text.Json.Serialization;
     using Minigram.Core.Context;
+    using Minigram.Core.Conventions;
     using Minigram.Core.Repositories;
     using Minigram.Auth.Models;
+    using Minigram.Core.Extensions;
 
     public class Program
     {
@@ -12,12 +15,22 @@ namespace Minigram.Auth
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers()
+            builder.Services
+                .AddControllers(options =>
+                {
+                    options.Conventions.Add(new ApiVersionRouteConvention());
+                })
                 .AddNewtonsoftJson()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
+
+            builder.Services.AddApiVersioning(new ApiVersion(1, 0));
+            builder.Services.AddVersionedApiExplorer();
+
+            builder.Services.Configure<RouteOptions>(options =>
+                options.LowercaseUrls = true);
 
             builder.Services.AddDbContext<BaseDbContext, ApplicationContext>(options => 
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

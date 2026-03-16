@@ -8,6 +8,7 @@
         using Minigram.Profile.Models;
         using Minigram.Core.Dto;
 
+        [ApiVersion("1.0")]
         [ApiController]
         [Route("[controller]s")]
         public class ProfileController : ControllerBase

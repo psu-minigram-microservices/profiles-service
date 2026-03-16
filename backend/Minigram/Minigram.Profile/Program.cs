@@ -1,12 +1,14 @@
 namespace Minigram.Profile
 {
-    using Microsoft.EntityFrameworkCore;
     using System.Text.Json.Serialization;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Minigram.Core.Context;
+    using Minigram.Core.Extensions;
+    using Minigram.Core.Conventions;
+    using Minigram.Core.Repositories;
     using Minigram.Profile.Models;
     using Minigram.Profile.Services;
-    using Minigram.Core.Repositories;
-    using Minigram.Core.Context;
-    using System.Text.Json;
 
     public class Program
     {
@@ -14,12 +16,19 @@ namespace Minigram.Profile
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers()
+            builder.Services
+                .AddControllers(options =>
+                {
+                    options.Conventions.Add(new ApiVersionRouteConvention());
+                })
                 .AddNewtonsoftJson()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
+
+            builder.Services.AddApiVersioning(new ApiVersion(1, 0));
+            builder.Services.AddVersionedApiExplorer();
 
             builder.Services.Configure<RouteOptions>(options =>
                 options.LowercaseUrls = true);

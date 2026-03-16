@@ -3,6 +3,7 @@ namespace Minigram.Auth.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Minigram.Auth.DTO;
 
+    [ApiVersion("1.0")]
     [ApiController]
     [Route("[controller]")]
     public class AuthController : ControllerBase

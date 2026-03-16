@@ -7,6 +7,7 @@
         using Minigram.Profile.Models;
         using Minigram.Core.Dto;
 
+        [ApiVersion("1.0")]
         [ApiController]
         [Route($"{nameof(Profile)}s/[controller]s")]
         public class RelationController : ControllerBase
