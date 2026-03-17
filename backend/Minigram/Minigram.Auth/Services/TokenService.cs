@@ -23,8 +23,8 @@ namespace Minigram.Auth.Services
 
             List<Claim> claims = new ()
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
             };
 
             SymmetricSecurityKey key = new (Encoding.UTF8.GetBytes(_jwtOptions.Secret));
