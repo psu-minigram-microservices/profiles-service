@@ -8,20 +8,28 @@ namespace Minigram.Profile
     {
         public DbSet<Profile> Profiles { get; set; }
 
-        public DbSet<Relation> Relationships { get; set; }
+        public DbSet<Relation> Relations { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options) {}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Relation>()
-                .Navigation(r => r.Sender)
-                .AutoInclude();
-            
-            modelBuilder.Entity<Relation>()
-                .Navigation(r => r.Receiver)
-                .AutoInclude();
+            modelBuilder.Entity<Relation>(entity =>
+            {
+                entity.HasOne(r => r.Sender)
+                    .WithMany()
+                    .HasForeignKey(r => r.SenderId)
+                    .HasPrincipalKey(p => p.UserId);;
+                
+                entity.HasOne(r => r.Receiver)
+                    .WithMany()
+                    .HasForeignKey(r => r.ReceiverId)
+                    .HasPrincipalKey(p => p.UserId);;
+
+                entity.Navigation(r => r.Sender).AutoInclude();
+                entity.Navigation(r => r.Receiver).AutoInclude();
+            });
         }
     }
 }

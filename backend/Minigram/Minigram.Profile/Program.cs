@@ -57,7 +57,8 @@ namespace Minigram.Profile
                 options.LowercaseUrls = true);
 
             builder.Services.AddDbContext<BaseDbContext, ApplicationContext>(options => 
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    options => options.MapEnum<tRelationshipStatus>(enumName: nameof(tRelationshipStatus).ToLower())));
             
             builder.Services.AddSingleton<CurrentUserService>();
 

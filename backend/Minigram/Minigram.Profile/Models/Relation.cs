@@ -10,8 +10,8 @@ namespace Minigram.Profile.Models
 
         public tRelationshipStatus Status { get; set; }
 
-        public Profile Sender { get; set; } = null!;
+        public virtual Profile Sender { get; set; } = null!;
 
-        public Profile Receiver { get; set; } = null!;
+        public virtual Profile Receiver { get; set; } = null!;
     }
 }

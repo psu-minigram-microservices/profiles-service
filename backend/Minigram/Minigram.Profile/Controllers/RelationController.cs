@@ -53,8 +53,10 @@
                 [FromRoute] Guid receiverId,
                 [FromQuery] tRelationshipStatus status)
             {
-                Relation relation = await _relationService.CreateOrUpdate(UserId, receiverId, status);
-                return CreatedAtAction(nameof(Get), relation.ToDto());
+                await _relationService.CreateOrUpdate(UserId, receiverId, status);
+
+                RelationResponseDto relationDto = await _relationService.Get(UserId, receiverId);
+                return CreatedAtAction(nameof(Get), new { receiverId }, relationDto);
             }
 
             [HttpDelete($"{{{nameof(receiverId)}}}")]
