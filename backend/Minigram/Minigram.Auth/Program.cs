@@ -1,10 +1,10 @@
 namespace Minigram.Auth
 {
     using System.Text.Json.Serialization;
-    using Microsoft.OpenApi;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.AspNetCore.Identity;
+    using Microsoft.OpenApi;
     using Minigram.Core.Utils.Extensions;
     using Minigram.Core.Utils.Conventions;
     using Minigram.Core.ApplicationContext;
@@ -12,6 +12,7 @@ namespace Minigram.Auth
     using Minigram.Auth.Models;
     using Minigram.Auth.Options;
     using Minigram.Auth.Services;
+    using Minigram.Core.Middleware;
 
     public class Program
     {
@@ -73,6 +74,7 @@ namespace Minigram.Auth
                 });
             }
 
+            app.UseExceptionHandling();
             app.UseAuthorization();
 
             app.MapControllers();

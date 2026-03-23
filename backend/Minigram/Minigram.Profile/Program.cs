@@ -1,12 +1,14 @@
 namespace Minigram.Profile
 {
-    using System.Text;
     using System.ComponentModel.DataAnnotations;
-    using Microsoft.OpenApi;
+    using System.Text;
+    using System.Text.Json.Serialization;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.IdentityModel.Tokens;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.OpenApi;
+    using Minigram.Core.Middleware;
     using Minigram.Core.Utils.Extensions;
     using Minigram.Core.Utils.Conventions;
     using Minigram.Core.ApplicationContext;
@@ -15,7 +17,7 @@ namespace Minigram.Profile
     using Minigram.Profile.Controllers.Services;
     using Minigram.Profile.ApplicationContext;
     using Minigram.Profile.ApplicationContext.Models;
-    using System.Text.Json.Serialization;
+
 
     public class Program
     {
@@ -108,6 +110,7 @@ namespace Minigram.Profile
                 });
             }
 
+            app.UseExceptionHandling();
             app.UseAuthentication();
             app.UseAuthorization();
 
