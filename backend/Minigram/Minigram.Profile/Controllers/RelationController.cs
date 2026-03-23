@@ -35,12 +35,13 @@ namespace Minigram.Profile.Controllers
         [HttpGet]
         public async Task<PagedResponse<ProfileResponseDto>> GetByStatus(
             [Required][FromQuery] tStatus status,
+            [Required][FromQuery] tRelationType type,
             [FromQuery] QueryParams queryParams)
         {
             Profile profile = await _profileService.GetByUserId(UserId);
 
-            int count = await _relationService.CountByStatus(profile.Id, status);
-            List<ProfileResponseDto> data = await _relationService.GetAllByStatus(profile.Id, status, queryParams);
+            int count = await _relationService.CountByStatus(profile.Id, type, status);
+            List<ProfileResponseDto> data = await _relationService.GetAllByStatus(profile.Id, status, type, queryParams);
 
             return new PagedResponse<ProfileResponseDto>
             {
@@ -50,17 +51,25 @@ namespace Minigram.Profile.Controllers
         }
 
         [HttpGet($"{{{nameof(receiverId)}}}")]
-        public async Task<RelationResponseDto> Get([FromRoute] Guid receiverId)
+        public async Task<RelationResponseDto> Get(
+            [FromRoute] Guid receiverId,
+            [Required][FromQuery] tRelationType type)
         {
             Profile profile = await _profileService.GetByUserId(UserId);
-            return await _relationService.Get(profile.Id, receiverId);
+
+            if (type == tRelationType.Outgoing)
+            {
+                return await _relationService.Get(profile.Id, receiverId);
+            }
+            
+            return await _relationService.Get(receiverId, profile.Id);
         }
 
         [HttpPost($"{nameof(Send)}/{{{nameof(receiverId)}}}")]
         public async Task Send([FromRoute] Guid receiverId)
         {
             Profile profile = await _profileService.GetByUserId(UserId);
-            await _relationService.Send(profile.Id, receiverId);;
+            await _relationService.Send(profile.Id, receiverId);
         }
 
         [HttpPost($"{nameof(Reply)}/{{{nameof(senderId)}}}")]

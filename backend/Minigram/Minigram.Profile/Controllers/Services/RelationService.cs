@@ -21,10 +21,14 @@ namespace Minigram.Profile.Controllers.Services
             _relationRepository = relationRepository;
         }
 
-        public async Task<List<ProfileResponseDto>> GetAllByStatus(Guid senderId, tStatus status, QueryParams queryParams)
+        public async Task<List<ProfileResponseDto>> GetAllByStatus(
+            Guid profileId,
+            tStatus status,
+            tRelationType type,
+            QueryParams queryParams)
         {
             ArgumentNullException.ThrowIfNull(queryParams);
-            Assertions.ThrowIfNullOrEmpty(senderId, nameof(senderId));
+            Assertions.ThrowIfNullOrEmpty(profileId, nameof(profileId));
 
             IQueryable<Relation> relations = Relations;
 
@@ -33,21 +37,41 @@ namespace Minigram.Profile.Controllers.Services
 
             if (page.HasValue && perPage.HasValue)
             {
-                relations.Skip(page.Value * perPage.Value).Take(perPage.Value);
+                relations = relations.Skip(page.Value * perPage.Value).Take(perPage.Value);
+            }
+
+            if (type == tRelationType.Incoming)
+            {
+                relations = relations.Where(r => r.ReceiverId == profileId);
+            }
+            else if (type == tRelationType.Outgoing)
+            {
+                relations = relations.Where(r => r.SenderId == profileId);
             }
 
             return await relations
-                .Where(r => r.Status == status && r.SenderId == senderId)
-                .Select(u => u.Receiver.ToDto())
+                .Where(r => r.Status == status)
+                .Select(r => type == tRelationType.Outgoing ? r.Receiver.ToDto() : r.Sender.ToDto())
                 .ToListAsync();
         }
 
-        public async Task<int> CountByStatus(Guid senderId, tStatus status)
+        public async Task<int> CountByStatus(Guid profileId, tRelationType type, tStatus status)
         {
-            Assertions.ThrowIfNullOrEmpty(senderId, nameof(senderId));
+            Assertions.ThrowIfNullOrEmpty(profileId, nameof(profileId));
 
-            return await Relations
-                .Where(r => r.Status == status && r.SenderId == senderId)
+            IQueryable<Relation> relations = Relations;
+
+            if (type == tRelationType.Incoming)
+            {
+                relations = relations.Where(r => r.ReceiverId == profileId);
+            }
+            else if (type == tRelationType.Outgoing)
+            {
+                relations = relations.Where(r => r.SenderId == profileId);
+            }
+
+            return await relations
+                .Where(r => r.Status == status)
                 .CountAsync();
         }
 

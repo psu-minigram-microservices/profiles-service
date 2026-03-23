@@ -32,7 +32,7 @@ namespace Minigram.Profile.Controllers.Services
 
             if (page.HasValue && perPage.HasValue)
             {
-                profiles.Skip(page.Value * perPage.Value).Take(perPage.Value);
+                profiles = profiles.Skip(page.Value * perPage.Value).Take(perPage.Value);
             }
 
             return await profiles

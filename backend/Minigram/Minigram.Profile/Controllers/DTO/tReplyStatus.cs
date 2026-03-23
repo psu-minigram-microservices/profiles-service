@@ -6,6 +6,6 @@ namespace Minigram.Profile.Controllers.Dto
 
         Rejected,
 
-        Blocked
+        Blocked,
     }
 }
