@@ -5,22 +5,35 @@
     using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Minigram.Core.Dto;
-    using Minigram.Core.Exceptions;
+    using Minigram.Core.Utils.Exceptions;
 
     public class ExceptionHandlingMiddleware
     {
-        private readonly RequestDelegate _next;
-        private readonly IWebHostEnvironment _env;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private const string DefaultErrorMessage = "An unexpected error occurred. Please try again later.";
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly Dictionary<HttpStatusCode, string> ErrorMessages = new ()
+        {
+            [HttpStatusCode.NotFound] = "The requested resource was not found.",
+            [HttpStatusCode.Unauthorized] = "Authentication is required to access this resource.",
+            [HttpStatusCode.BadRequest] = "The request contains invalid data.",
+            [HttpStatusCode.Conflict] = "A conflict occurred while processing your request. The resource may have been modified.",
+            [HttpStatusCode.Forbidden] = "Do not have permission to access this resource.",
+        };
+
+        private static readonly JsonSerializerOptions JsonOptions = new ()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
+
+        private readonly RequestDelegate _next;
+
+        private readonly IWebHostEnvironment _env;
+
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
         public ExceptionHandlingMiddleware(RequestDelegate next, IWebHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger)
         {
@@ -47,6 +60,11 @@
             {
                 await WriteErrorResponse(context, HttpStatusCode.BadRequest, ex);
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database update error on {Method} {Path}", context.Request.Method, context.Request.Path);
+                await WriteErrorResponse(context, HttpStatusCode.Conflict, ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
@@ -59,41 +77,30 @@
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/json";
 
-            var dto = _env.IsDevelopment() ?
-                BuildDevelopmentResponse(statusCode, exception) :
-                BuildProductionResponse(statusCode, exception);
+            ErrorResponse dto = new ()
+            {
+                StatusCode = (int)statusCode,
+                Message = GetErrorMessage(statusCode, exception),
+            };
+
+            if (_env.IsDevelopment())
+            {
+                dto.ExceptionType = exception.GetType().Name;
+                dto.StackTrace = exception.StackTrace;
+            }
 
             var json = JsonSerializer.Serialize(dto, JsonOptions);
             await context.Response.WriteAsync(json);
         }
 
-        private static ErrorResponse BuildDevelopmentResponse(HttpStatusCode statusCode, Exception exception)
+        private string GetErrorMessage(HttpStatusCode statusCode, Exception exception)
         {
-            return new ErrorResponse
+            if (_env.IsDevelopment())
             {
-                StatusCode = (int)statusCode,
-                Message = exception.Message,
-                ExceptionType = exception.GetType().Name,
-                StackTrace = exception.StackTrace,
-            };
-        }
-
-        private static ErrorResponse BuildProductionResponse(HttpStatusCode statusCode, Exception exception)
-        {
-            var message = statusCode switch
-            {
-                HttpStatusCode.NotFound => "The requested resource was not found.",
-                HttpStatusCode.Unauthorized => "Authentication is required to access this resource.",
-                HttpStatusCode.BadRequest => "The request contains invalid data.",
-                HttpStatusCode.Forbidden => "Do not have permission to access this resource.",
-                _ => "An unexpected error occurred. Please try again later."
-            };
-
-            return new ErrorResponse
-            {
-                StatusCode = (int)statusCode,
-                Message = message,
-            };
+                return exception.Message;
+            }
+            
+            return ErrorMessages.GetValueOrDefault(statusCode, DefaultErrorMessage);
         }
     }
 }
