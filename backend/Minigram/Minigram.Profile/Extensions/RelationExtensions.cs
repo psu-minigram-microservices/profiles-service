@@ -1,7 +1,7 @@
 namespace Minigram.Profile.Extensions
 {
-    using Minigram.Profile.Dto;
-    using Minigram.Profile.Models;
+    using Minigram.Profile.Controllers.Dto;
+    using Minigram.Profile.ApplicationContext.Models;
 
     internal static class RelationExtensions
     {

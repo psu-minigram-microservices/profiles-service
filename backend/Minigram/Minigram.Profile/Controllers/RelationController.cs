@@ -1,13 +1,15 @@
     namespace Minigram.Profile.Controllers
     {
         using Microsoft.AspNetCore.Mvc;
-        using Minigram.Profile.Dto;
-        using Minigram.Profile.Extensions;
-        using Minigram.Profile.Services;
-        using Minigram.Profile.Models;
+        using Minigram.Profile.Controllers.Dto;
+        using Minigram.Profile.Controllers.Services;
+        using Minigram.Profile.ApplicationContext.Models;
         using Minigram.Core.Dto;
+    using System.Diagnostics.CodeAnalysis;
+    using System.ComponentModel.DataAnnotations;
 
-        [ApiVersion("1.0")]
+
+    [ApiVersion("1.0")]
         [ApiController]
         [Route($"{nameof(Profile)}s/[controller]s")]
         public class RelationController : ControllerBase
@@ -16,24 +18,30 @@
 
             private readonly RelationService _relationService;
 
+            private readonly ProfileService _profileService;
+
             private Guid UserId =>
                 _currentUserService.UserGuid ?? throw new UnauthorizedAccessException();
 
             public RelationController(
                 CurrentUserService currentUserService,
-                RelationService relationService)
+                RelationService relationService,
+                ProfileService profileService)
             {
                 _currentUserService = currentUserService;
                 _relationService = relationService;
+                _profileService = profileService;
             }
 
             [HttpGet]
             public async Task<PagedResponse<ProfileResponseDto>> GetByStatus(
-                [FromQuery] tRelationshipStatus status,
+                [Required][FromQuery] tStatus status,
                 [FromQuery] QueryParams queryParams)
             {
-                int count = await _relationService.CountByStatus(UserId, status);
-                List<ProfileResponseDto> data = await _relationService.GetAllByStatus(UserId, status, queryParams);
+                Profile profile = await _profileService.GetByUserId(UserId);
+
+                int count = await _relationService.CountByStatus(profile.Id, status);
+                List<ProfileResponseDto> data = await _relationService.GetAllByStatus(profile.Id, status, queryParams);
 
                 return new PagedResponse<ProfileResponseDto>
                 {
@@ -45,24 +53,29 @@
             [HttpGet($"{{{nameof(receiverId)}}}")]
             public async Task<RelationResponseDto> Get([FromRoute] Guid receiverId)
             {
-                return await _relationService.Get(UserId, receiverId);
+                Profile profile = await _profileService.GetByUserId(UserId);
+                return await _relationService.Get(profile.Id, receiverId);
             }
 
-            [HttpPost($"{{{nameof(receiverId)}}}")]
-            public async Task<ActionResult> CreateOrUpdate(
-                [FromRoute] Guid receiverId,
-                [FromQuery] tRelationshipStatus status)
+            [HttpPost($"{nameof(Send)}/{{{nameof(receiverId)}}}")]
+            public async Task Send([FromRoute] Guid receiverId)
             {
-                await _relationService.CreateOrUpdate(UserId, receiverId, status);
+                Profile profile = await _profileService.GetByUserId(UserId);
+                await _relationService.Send(profile.Id, receiverId);;
+            }
 
-                RelationResponseDto relationDto = await _relationService.Get(UserId, receiverId);
-                return CreatedAtAction(nameof(Get), new { receiverId }, relationDto);
+            [HttpPost($"{nameof(Reply)}/{{{nameof(senderId)}}}")]
+            public async Task Reply([FromRoute] Guid senderId, [Required][FromQuery] tReplyStatus status)
+            {
+                Profile profile = await _profileService.GetByUserId(UserId);
+                await _relationService.Reply(senderId, profile.Id, status);
             }
 
             [HttpDelete($"{{{nameof(receiverId)}}}")]
             public async Task DeleteRelation([FromRoute] Guid receiverId)
             {
-                await _relationService.Delete(UserId, receiverId);
+                Profile profile = await _profileService.GetByUserId(UserId);
+                await _relationService.Delete(profile.Id, receiverId);
             }
         }
     }

@@ -1,21 +1,21 @@
 namespace Minigram.Profile
 {
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.ComponentModel.DataAnnotations;
     using Microsoft.OpenApi;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Minigram.Core.Context;
-    using Minigram.Core.Extensions;
-    using Minigram.Core.Conventions;
-    using Minigram.Core.Repositories;
-    using Minigram.Profile.Models;
+    using Minigram.Core.Utils.Extensions;
+    using Minigram.Core.Utils.Conventions;
+    using Minigram.Core.ApplicationContext;
+    using Minigram.Core.ApplicationContext.Repositories;
     using Minigram.Profile.Options;
-    using Minigram.Profile.Services;
-
+    using Minigram.Profile.Controllers.Services;
+    using Minigram.Profile.ApplicationContext;
+    using Minigram.Profile.ApplicationContext.Models;
+    using System.Text.Json.Serialization;
 
     public class Program
     {
@@ -37,14 +37,13 @@ namespace Minigram.Profile
                         ValidAudience = jwtOptions.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
                     };
-                });
+                }); 
 
             builder.Services
                 .AddControllers(options =>
                 {
                     options.Conventions.Add(new ApiVersionRouteConvention());
                 })
-                .AddNewtonsoftJson()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -56,9 +55,14 @@ namespace Minigram.Profile
             builder.Services.Configure<RouteOptions>(options =>
                 options.LowercaseUrls = true);
 
-            builder.Services.AddDbContext<BaseDbContext, ApplicationContext>(options => 
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-                    options => options.MapEnum<tRelationshipStatus>(enumName: nameof(tRelationshipStatus).ToLower())));
+            builder.Services.AddDbContext<BaseDbContext, ApplicationDbContext>(options => 
+                options.UseNpgsql(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    npgsqlOptions =>
+                    {
+                        npgsqlOptions.MapEnum<tStatus>(enumName: nameof(tStatus).ToLower());
+                    })
+                    .UseLowerCaseNamingConvention());
             
             builder.Services.AddSingleton<CurrentUserService>();
 
