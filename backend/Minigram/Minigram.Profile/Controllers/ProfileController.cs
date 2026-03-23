@@ -1,73 +1,73 @@
-    namespace Minigram.Profile.Controllers
+namespace Minigram.Profile.Controllers
+{
+    using Microsoft.AspNetCore.Mvc;
+    using Minigram.Profile.Extensions;
+    using Minigram.Profile.Controllers.Dto;
+    using Minigram.Profile.Controllers.Services;
+    using Minigram.Profile.ApplicationContext.Models;
+    using Minigram.Core.Dto;
+
+    [ApiVersion("1.0")]
+    [ApiController]
+    [Route("[controller]s")]
+    public class ProfileController : ControllerBase
     {
-        using Microsoft.AspNetCore.Mvc;
-        using Minigram.Profile.Extensions;
-        using Minigram.Profile.Controllers.Dto;
-        using Minigram.Profile.Controllers.Services;
-        using Minigram.Profile.ApplicationContext.Models;
-        using Minigram.Core.Dto;
+        private readonly CurrentUserService _currentUserService;
 
-        [ApiVersion("1.0")]
-        [ApiController]
-        [Route("[controller]s")]
-        public class ProfileController : ControllerBase
+        private readonly ProfileService _profileService;
+
+        private Guid UserId =>
+            _currentUserService.UserGuid ?? throw new UnauthorizedAccessException();
+
+        public ProfileController(
+            CurrentUserService currentUserService,
+            ProfileService profileService)
         {
-            private readonly CurrentUserService _currentUserService;
+            _currentUserService = currentUserService;
+            _profileService = profileService;
+        }
 
-            private readonly ProfileService _profileService;
+        [HttpGet]
+        public async Task<PagedResponse<ProfileResponseDto>> GetAll([FromQuery] QueryParams queryParams)
+        {
+            int count = await _profileService.Count();
+            List<ProfileResponseDto> data = await _profileService.GetAll(queryParams);
 
-            private Guid UserId =>
-                _currentUserService.UserGuid ?? throw new UnauthorizedAccessException();
-
-            public ProfileController(
-                CurrentUserService currentUserService,
-                ProfileService profileService)
+            return new PagedResponse<ProfileResponseDto>
             {
-                _currentUserService = currentUserService;
-                _profileService = profileService;
-            }
+                Count = count,
+                Data = data,
+            };
+        }
 
-            [HttpGet]
-            public async Task<PagedResponse<ProfileResponseDto>> GetAll([FromQuery] QueryParams queryParams)
-            {
-                int count = await _profileService.Count();
-                List<ProfileResponseDto> data = await _profileService.GetAll(queryParams);
+        [HttpGet(nameof(Me))]
+        public async Task<ProfileResponseDto> Me()
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            return profile.ToDto();
+        }
 
-                return new PagedResponse<ProfileResponseDto>
-                {
-                    Count = count,
-                    Data = data,
-                };
-            }
+        [HttpGet($"{{{nameof(id)}}}")]
+        public async Task<ProfileResponseDto> Get([FromRoute] Guid id)
+        {
+            Profile profile = await _profileService.Get(id);
+            return profile.ToDto();
+        }
 
-            [HttpGet(nameof(Me))]
-            public async Task<ProfileResponseDto> Me()
-            {
-                Profile profile = await _profileService.GetByUserId(UserId);
-                return profile.ToDto();
-            }
+        [HttpPost]
+        public async Task<ActionResult> Create([FromBody] ProfileRequestDto dto)
+        {
+            Profile profile = await _profileService.Create(UserId, dto);
+            return CreatedAtAction(nameof(Me), profile.ToDto());
+        }
 
-            [HttpGet($"{{{nameof(id)}}}")]
-            public async Task<ProfileResponseDto> Get([FromRoute] Guid id)
-            {
-                Profile profile = await _profileService.Get(id);
-                return profile.ToDto();
-            }
+        [HttpPut]
+        public async Task<ActionResult> Update([FromBody] ProfileRequestDto dto)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            await _profileService.Update(profile, dto);
 
-            [HttpPost]
-            public async Task<ActionResult> Create([FromBody] ProfileRequestDto dto)
-            {
-                Profile profile = await _profileService.Create(UserId, dto);
-                return CreatedAtAction(nameof(Me), profile.ToDto());
-            }
-
-            [HttpPut]
-            public async Task<ActionResult> Update([FromBody] ProfileRequestDto dto)
-            {
-                Profile profile = await _profileService.GetByUserId(UserId);
-                await _profileService.Update(profile, dto);
-
-                return CreatedAtAction(nameof(Me), profile.ToDto());
-            }
+            return CreatedAtAction(nameof(Me), profile.ToDto());
         }
     }
+}

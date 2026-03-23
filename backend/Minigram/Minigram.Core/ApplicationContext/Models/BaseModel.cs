@@ -1,4 +1,3 @@
-
 namespace Minigram.Core.ApplicationContext.Models
 {
     public class BaseModel
