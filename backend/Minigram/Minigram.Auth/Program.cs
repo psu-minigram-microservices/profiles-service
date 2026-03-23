@@ -5,10 +5,10 @@ namespace Minigram.Auth
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
-    using Minigram.Core.Context;
-    using Minigram.Core.Extensions;
-    using Minigram.Core.Conventions;
-    using Minigram.Core.Repositories;
+    using Minigram.Core.Utils.Extensions;
+    using Minigram.Core.Utils.Conventions;
+    using Minigram.Core.ApplicationContext;
+    using Minigram.Core.ApplicationContext.Repositories;
     using Minigram.Auth.Models;
     using Minigram.Auth.Options;
     using Minigram.Auth.Services;
@@ -24,7 +24,6 @@ namespace Minigram.Auth
                 {
                     options.Conventions.Add(new ApiVersionRouteConvention());
                 })
-                .AddNewtonsoftJson()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -40,7 +39,7 @@ namespace Minigram.Auth
             builder.Services.Configure<RouteOptions>(options =>
                 options.LowercaseUrls = true);
 
-            builder.Services.AddDbContext<BaseDbContext, ApplicationContext>(options => 
+            builder.Services.AddDbContext<BaseDbContext, ApplicationDbContext>(options => 
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();

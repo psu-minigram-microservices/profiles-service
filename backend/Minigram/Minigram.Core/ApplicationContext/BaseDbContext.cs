@@ -1,4 +1,4 @@
-namespace Minigram.Core.Context
+namespace Minigram.Core.ApplicationContext
 {
     using Microsoft.EntityFrameworkCore;
 

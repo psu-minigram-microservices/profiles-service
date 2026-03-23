@@ -1,7 +1,7 @@
 namespace Minigram.Profile.Extensions
 {
-    using Minigram.Profile.Dto;
-    using Minigram.Profile.Models;
+    using Minigram.Profile.Controllers.Dto;
+    using Minigram.Profile.ApplicationContext.Models;
 
     internal static class ProfileExtensions
     {
@@ -11,7 +11,7 @@ namespace Minigram.Profile.Extensions
 
             return new ProfileResponseDto
             {
-                UserId = profile.UserId,
+                Id = profile.Id,
                 Name = profile.Name,
                 PhotoUrl = profile.PhotoUrl,
             };
