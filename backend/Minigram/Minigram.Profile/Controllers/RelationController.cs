@@ -1,68 +1,80 @@
-    namespace Minigram.Profile.Controllers
+namespace Minigram.Profile.Controllers
+{
+    using System.ComponentModel.DataAnnotations;
+    using Microsoft.AspNetCore.Mvc;
+    using Minigram.Profile.Controllers.Dto;
+    using Minigram.Profile.Controllers.Services;
+    using Minigram.Profile.ApplicationContext.Models;
+    using Minigram.Core.Dto;
+
+
+    [ApiVersion("1.0")]
+    [ApiController]
+    [Route($"{nameof(Profile)}s/[controller]s")]
+    public class RelationController : ControllerBase
     {
-        using Microsoft.AspNetCore.Mvc;
-        using Minigram.Profile.Dto;
-        using Minigram.Profile.Extensions;
-        using Minigram.Profile.Services;
-        using Minigram.Profile.Models;
-        using Minigram.Core.Dto;
+        private readonly CurrentUserService _currentUserService;
 
-        [ApiVersion("1.0")]
-        [ApiController]
-        [Route($"{nameof(Profile)}s/[controller]s")]
-        public class RelationController : ControllerBase
+        private readonly RelationService _relationService;
+
+        private readonly ProfileService _profileService;
+
+        private Guid UserId =>
+            _currentUserService.UserGuid ?? throw new UnauthorizedAccessException();
+
+        public RelationController(
+            CurrentUserService currentUserService,
+            RelationService relationService,
+            ProfileService profileService)
         {
-            private readonly CurrentUserService _currentUserService;
+            _currentUserService = currentUserService;
+            _relationService = relationService;
+            _profileService = profileService;
+        }
 
-            private readonly RelationService _relationService;
+        [HttpGet]
+        public async Task<PagedResponse<ProfileResponseDto>> GetByStatus(
+            [Required][FromQuery] tStatus status,
+            [FromQuery] QueryParams queryParams)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
 
-            private Guid UserId =>
-                _currentUserService.UserGuid ?? throw new UnauthorizedAccessException();
+            int count = await _relationService.CountByStatus(profile.Id, status);
+            List<ProfileResponseDto> data = await _relationService.GetAllByStatus(profile.Id, status, queryParams);
 
-            public RelationController(
-                CurrentUserService currentUserService,
-                RelationService relationService)
+            return new PagedResponse<ProfileResponseDto>
             {
-                _currentUserService = currentUserService;
-                _relationService = relationService;
-            }
+                Count = count,
+                Data = data,
+            };
+        }
 
-            [HttpGet]
-            public async Task<PagedResponse<ProfileResponseDto>> GetByStatus(
-                [FromQuery] tRelationshipStatus status,
-                [FromQuery] QueryParams queryParams)
-            {
-                int count = await _relationService.CountByStatus(UserId, status);
-                List<ProfileResponseDto> data = await _relationService.GetAllByStatus(UserId, status, queryParams);
+        [HttpGet($"{{{nameof(receiverId)}}}")]
+        public async Task<RelationResponseDto> Get([FromRoute] Guid receiverId)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            return await _relationService.Get(profile.Id, receiverId);
+        }
 
-                return new PagedResponse<ProfileResponseDto>
-                {
-                    Count = count,
-                    Data = data,
-                };
-            }
+        [HttpPost($"{nameof(Send)}/{{{nameof(receiverId)}}}")]
+        public async Task Send([FromRoute] Guid receiverId)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            await _relationService.Send(profile.Id, receiverId);;
+        }
 
-            [HttpGet($"{{{nameof(receiverId)}}}")]
-            public async Task<RelationResponseDto> Get([FromRoute] Guid receiverId)
-            {
-                return await _relationService.Get(UserId, receiverId);
-            }
+        [HttpPost($"{nameof(Reply)}/{{{nameof(senderId)}}}")]
+        public async Task Reply([FromRoute] Guid senderId, [Required][FromQuery] tReplyStatus status)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            await _relationService.Reply(senderId, profile.Id, status);
+        }
 
-            [HttpPost($"{{{nameof(receiverId)}}}")]
-            public async Task<ActionResult> CreateOrUpdate(
-                [FromRoute] Guid receiverId,
-                [FromQuery] tRelationshipStatus status)
-            {
-                await _relationService.CreateOrUpdate(UserId, receiverId, status);
-
-                RelationResponseDto relationDto = await _relationService.Get(UserId, receiverId);
-                return CreatedAtAction(nameof(Get), new { receiverId }, relationDto);
-            }
-
-            [HttpDelete($"{{{nameof(receiverId)}}}")]
-            public async Task DeleteRelation([FromRoute] Guid receiverId)
-            {
-                await _relationService.Delete(UserId, receiverId);
-            }
+        [HttpDelete($"{{{nameof(receiverId)}}}")]
+        public async Task DeleteRelation([FromRoute] Guid receiverId)
+        {
+            Profile profile = await _profileService.GetByUserId(UserId);
+            await _relationService.Delete(profile.Id, receiverId);
         }
     }
+}
