@@ -3,25 +3,6 @@ version: '3.8'
 name: minigram
 
 services:
-  auth-service:
-    build:
-      context: ../backend/Minigram
-      dockerfile: ./Minigram.Auth/Dockerfile
-    container_name: minigram-auth-service
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Host=postgres-auth;Database=${AUTH_DB_NAME};Username=${AUTH_DB_USER};Password=${AUTH_DB_PASSWORD}
-      - JWT__Secret=${JWT_SECRET}
-      - JWT__Issuer=${JWT_ISSUER}
-      - JWT__Audience=${JWT_AUDIENCE}
-      - JWT__ExpirationMinutes=${JWT_EXPIRATION}
-    ports:
-      - "${AUTH_SERVICE_PORT}:5000"
-    networks:
-      - minigram
-    restart: unless-stopped
-
   profile-service:
     build:
       context: ../backend/Minigram
@@ -38,26 +19,6 @@ services:
       - "${PROFILE_SERVICE_PORT}:5000"
     networks:
       - minigram
-    restart: unless-stopped
-
-  postgres-auth:
-    image: postgres:18.3
-    container_name: minigram-postgres-auth
-    environment:
-      POSTGRES_DB: ${AUTH_DB_NAME}
-      POSTGRES_USER: ${AUTH_DB_USER}
-      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
-    ports:
-      - "${AUTH_DB_PORT}:5432"
-    volumes:
-      - postgres_auth_data:/var/lib/postgresql
-    networks:
-      - minigram
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   postgres-profile:
@@ -79,28 +40,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-
-  liquibase-auth:
-    image: liquibase/liquibase:5.0.1
-    container_name: minigram-liquibase-auth
-    depends_on:
-      postgres-auth:
-        condition: service_healthy
-    environment:
-      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres-auth:5432/${AUTH_DB_NAME}
-      LIQUIBASE_COMMAND_USERNAME: ${AUTH_DB_USER}
-      LIQUIBASE_COMMAND_PASSWORD: ${AUTH_DB_PASSWORD}
-      LIQUIBASE_COMMAND_CHANGELOG_FILE: /changelog-auth/changelog-auth.xml
-    volumes:
-      - ../backend/sql/changelog-auth.xml:/liquibase/changelog-auth/changelog-auth.xml
-      - ../backend/sql/migrate/auth:/liquibase/changelog-auth/migrate/auth
-      - ./drivers:/liquibase/lib
-    networks:
-      - minigram
-    command:
-      - --driver=org.postgresql.Driver
-      - update
-    restart: "no"
 
   liquibase-profile:
     image: liquibase/liquibase:5.0.1
@@ -125,7 +64,6 @@ services:
     restart: "no"
 
 volumes:
-  postgres_auth_data:
   postgres_profile_data:
 
 networks:
