@@ -11,6 +11,22 @@ namespace Minigram.Auth
         public DbSet<RefreshSession> RefreshSessions { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) {}
+                    : base(options) {}
+        
+                protected override void OnModelCreating(ModelBuilder modelBuilder)
+                {
+                    base.OnModelCreating(modelBuilder);
+        
+                    modelBuilder.Entity<RefreshSession>(entity =>
+                    {
+                        entity.Property(e => e.CreatedAt)
+                            .HasDefaultValueSql("NOW()")
+                            .ValueGeneratedOnAdd();
+        
+                        entity.Property(e => e.UpdatedAt)
+                            .HasDefaultValueSql("NOW()")
+                            .ValueGeneratedOnAddOrUpdate();
+                    });
+                }
     }
 }

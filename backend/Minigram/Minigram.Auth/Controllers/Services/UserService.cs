@@ -36,6 +36,15 @@ namespace Minigram.Auth.Services
         {
             ArgumentNullException.ThrowIfNull(dto);
 
+            // Check if user with this email already exists
+            User? existingUser = await Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("User already exists");
+            }
+
             User user = new ()
             {
                 Id = Guid.NewGuid(),
