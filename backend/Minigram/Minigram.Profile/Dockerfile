@@ -10,7 +10,7 @@ COPY Minigram.Core/ Minigram.Core/
 COPY Minigram.Profile/ Minigram.Profile/
 
 WORKDIR /src/Minigram.Profile
-RUN dotnet publish -c Release -o /app --no-restore
+RUN dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
