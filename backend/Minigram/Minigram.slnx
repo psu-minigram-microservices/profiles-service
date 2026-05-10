@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="Minigram.Core/Minigram.Core.csproj" />
-  <Project Path="Minigram.Profile/Minigram.Profile.csproj" />
-</Solution>
