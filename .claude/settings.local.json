@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)",
+      "PowerShell(Get-Process \"Docker Desktop\" -ErrorAction SilentlyContinue)",
+      "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\", \"$env:ProgramFiles\\\\Docker\\\\Docker\\\\Docker Desktop.exe\", \"$env:LOCALAPPDATA\\\\Docker\\\\Docker Desktop.exe\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Write-Output \"Found: $p\"; break } else { Write-Output \"Not found: $p\" } })",
+      "Bash(docker info *)",
+      "Bash(curl -s -o /dev/null -w \"swagger.json: %{http_code}\\\\n\" http://localhost:5001/swagger/v1/swagger.json)",
+      "Bash(curl -s -o /dev/null -w \"GET /api/v1/profiles \\(no auth\\): %{http_code}\\\\n\" http://localhost:5001/api/v1/profiles)",
+      "Bash(curl -s http://localhost:5001/swagger/v1/swagger.json)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('paths:'\\); [print\\(' ', p, list\\(m.keys\\(\\)\\)\\) for p,m in sorted\\(d['paths'].items\\(\\)\\)]\")",
+      "Bash(curl -s -o /dev/null -w \"GET /profiles: %{http_code}\\\\n\" http://localhost:5001/api/v1/profiles)",
+      "Bash(curl -s -o /dev/null -w \"GET /profiles: %{http_code}\\\\n\" -H \"Authorization: Bearer notatoken\" http://localhost:5001/api/v1/profiles)",
+      "Bash(curl -s -w '\\\\n  HTTP %{http_code}\\\\n' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkZTE0MDcxOS0wYWE0LTQ5NjAtYTg0ZS02MDA0ZDMxNGFiY2IiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpc3MiOiJNaW5pZ3JhbSIsImF1ZCI6Ik1pbmlncmFtQ2xpZW50IiwiaWF0IjoxNzc4NDA2NTMwLCJleHAiOjE3Nzg0MTAxMzB9.ecXV16s2pEVJcHomGxiTeXu282mvESurZLyYRwF6tbE' http://localhost:5001/api/v1/profiles/me)",
+      "Bash(curl -s -w '\\\\n  HTTP %{http_code}\\\\n' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkZTE0MDcxOS0wYWE0LTQ5NjAtYTg0ZS02MDA0ZDMxNGFiY2IiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpc3MiOiJNaW5pZ3JhbSIsImF1ZCI6Ik1pbmlncmFtQ2xpZW50IiwiaWF0IjoxNzc4NDA2NTMwLCJleHAiOjE3Nzg0MTAxMzB9.ecXV16s2pEVJcHomGxiTeXu282mvESurZLyYRwF6tbE' -H 'Content-Type: application/json' -d '{\"name\":\"Alice\",\"photoUrl\":\"https://example.com/a.png\"}' http://localhost:5001/api/v1/profiles)",
+      "Bash(curl -s -w '\\\\n  HTTP %{http_code}\\\\n' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkZTE0MDcxOS0wYWE0LTQ5NjAtYTg0ZS02MDA0ZDMxNGFiY2IiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpc3MiOiJNaW5pZ3JhbSIsImF1ZCI6Ik1pbmlncmFtQ2xpZW50IiwiaWF0IjoxNzc4NDA2NTMwLCJleHAiOjE3Nzg0MTAxMzB9.ecXV16s2pEVJcHomGxiTeXu282mvESurZLyYRwF6tbE' http://localhost:5001/api/v1/profiles)",
+      "Bash(ls .. 2>&1)"
+    ]
+  }
+}
