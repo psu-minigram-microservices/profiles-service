@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Minigram.Profile": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58064;http://localhost:58065"
+    }
+  }
+}
