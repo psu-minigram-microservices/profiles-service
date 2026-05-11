@@ -14,7 +14,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Host=postgres-profile;Port=5432;Database=${PROFILE_DB_NAME};Username=${PROFILE_DB_USER};Password=${PROFILE_DB_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=postgres-profile;Database=${PROFILE_DB_NAME};Username=${PROFILE_DB_USER};Password=${PROFILE_DB_PASSWORD}
       - JWT__Secret=${JWT_SECRET}
       - JWT__Issuer=${JWT_ISSUER}
       - JWT__Audience=${JWT_AUDIENCE}
@@ -51,7 +51,7 @@ services:
       postgres-profile:
         condition: service_healthy
     environment:
-      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres-profile:5432/${PROFILE_DB_NAME}
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres-profile/${PROFILE_DB_NAME}
       LIQUIBASE_COMMAND_USERNAME: ${PROFILE_DB_USER}
       LIQUIBASE_COMMAND_PASSWORD: ${PROFILE_DB_PASSWORD}
       LIQUIBASE_COMMAND_CHANGELOG_FILE: /changelog-profile/changelog-profile.xml
