@@ -94,6 +94,14 @@ class RelationService:
         throw_if_null_or_empty(sender_id, "senderId")
         throw_if_null_or_empty(receiver_id, "receiverId")
 
+        existing_stmt = self._repository.get().where(
+            Relation.sender_id == sender_id,
+            Relation.receiver_id == receiver_id,
+        )
+        existing = (await self._session.execute(existing_stmt)).scalars().first()
+        if existing is not None:
+            raise ValueError("Relation already exists.")
+
         relation = Relation(
             id=uuid.uuid4(),
             sender_id=sender_id,

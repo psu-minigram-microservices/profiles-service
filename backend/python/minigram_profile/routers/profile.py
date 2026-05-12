@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from minigram_core.dto.paged import PagedResponse
 from minigram_core.dto.query import QueryParams
+from minigram_core.exceptions import EntityNotFoundException
 from minigram_profile.dependencies import ProfileServiceDep
 from minigram_profile.dto.profile_request import ProfileRequestDto
 from minigram_profile.dto.profile_response import ProfileResponseDto
@@ -47,7 +48,10 @@ async def get(
     profile_service: ProfileServiceDep,
     _: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProfileResponseDto:
-    profile = await profile_service.get(id)
+    try:
+        profile = await profile_service.get(id)
+    except EntityNotFoundException:
+        profile = await profile_service.get_by_user_id(id)
     return profile_to_dto(profile)
 
 

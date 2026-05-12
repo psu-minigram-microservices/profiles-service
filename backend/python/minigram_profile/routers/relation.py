@@ -8,9 +8,9 @@ from minigram_core.dto.query import QueryParams
 from minigram_profile.dependencies import ProfileServiceDep, RelationServiceDep
 from minigram_profile.dto.profile_response import ProfileResponseDto
 from minigram_profile.dto.relation_response import RelationResponseDto
-from minigram_profile.dto.relation_type import tRelationType
-from minigram_profile.dto.reply_status import tReplyStatus
-from minigram_profile.models.status import tStatus
+from minigram_profile.dto.relation_type import RelationTypeQuery, tRelationType
+from minigram_profile.dto.reply_status import ReplyStatusQuery
+from minigram_profile.models.status import StatusQuery
 from minigram_profile.services.current_user import CurrentUser, get_current_user
 
 router = APIRouter(prefix="/profiles/relations", tags=["Relation"])
@@ -29,8 +29,8 @@ async def get_by_status(
     relation_service: RelationServiceDep,
     query_params: Annotated[QueryParams, Depends()],
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
-    status: Annotated[tStatus, Query(...)],
-    type: Annotated[tRelationType, Query(...)],
+    status: Annotated[StatusQuery, Query(...)],
+    type: Annotated[RelationTypeQuery, Query(...)],
 ) -> PagedResponse[ProfileResponseDto]:
     profile = await profile_service.get_by_user_id(_user_id(current_user))
     count = await relation_service.count_by_status(profile.id, type, status)
@@ -56,7 +56,7 @@ async def reply(
     relation_service: RelationServiceDep,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     senderid: uuid.UUID,
-    status: Annotated[tReplyStatus, Query(...)],
+    status: Annotated[ReplyStatusQuery, Query(...)],
 ) -> Response:
     profile = await profile_service.get_by_user_id(_user_id(current_user))
     await relation_service.reply(senderid, profile.id, status)
@@ -68,7 +68,7 @@ async def get(
     profile_service: ProfileServiceDep,
     relation_service: RelationServiceDep,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
-    type: Annotated[tRelationType, Query(...)],
+    type: Annotated[RelationTypeQuery, Query(...)],
     receiverid: uuid.UUID,
 ) -> RelationResponseDto:
     profile = await profile_service.get_by_user_id(_user_id(current_user))

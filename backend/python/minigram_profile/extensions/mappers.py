@@ -7,6 +7,7 @@ from minigram_profile.models.relation import Relation
 def profile_to_dto(profile: Profile) -> ProfileResponseDto:
     return ProfileResponseDto(
         id=profile.id,
+        user_id=profile.user_id,
         name=profile.name,
         photo_url=profile.photo_url,
     )
