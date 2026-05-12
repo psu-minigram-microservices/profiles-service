@@ -46,5 +46,7 @@ jobs:
       - name: Build and push
         uses: useblacksmith/build-push-action@v2
         with:
+          context: backend/Minigram
+          file: backend/Minigram/Minigram.Profile/Dockerfile
           push: true
           tags: ghcr.io/psu-minigram-microservices/profiles-service:${{ steps.tag.outputs.value }}
