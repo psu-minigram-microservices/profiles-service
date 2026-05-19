@@ -6,14 +6,14 @@ COPY Minigram.Profile/Minigram.Profile.csproj Minigram.Profile/
 COPY Minigram.Core/Minigram.Core.csproj Minigram.Core/
 
 RUN arch=$([ "$TARGETARCH" = "amd64" ] && echo "x64" || echo "$TARGETARCH") && \
-    dotnet restore Minigram.Profile/Minigram.Profile.csproj -a $arch --force
+    dotnet restore Minigram.Profile/Minigram.Profile.csproj -a $arch
 
 COPY Minigram.Core/ Minigram.Core/
 COPY Minigram.Profile/ Minigram.Profile/
 
 WORKDIR /src/Minigram.Profile
 RUN arch=$([ "$TARGETARCH" = "amd64" ] && echo "x64" || echo "$TARGETARCH") && \
-    dotnet publish -c Release -o /app -a $arch --no-restore
+    dotnet publish -c Release -o /app -a $arch
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
